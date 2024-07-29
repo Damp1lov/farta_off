@@ -48,7 +48,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await query.edit_message_text('Выберите время, в которое будет удобно подойти', reply_markup=reply_markup)
             user_state[user_id] = {'state': 'select_time'}
             return
-        elif current_state == 'select_time':
+        elif current_state == 'select_time' or current_state == 'collect_data':
             keyboard = [
                 [InlineKeyboardButton("Диспетчерское", callback_data='dispatcher')],
                 [InlineKeyboardButton("Административное", callback_data='administrative')],
@@ -56,12 +56,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text('Выберите направление, которое вам более интересно', reply_markup=reply_markup)
-            user_state.pop(user_id, None)
+            user_state[user_id] = 'choose_direction'
             return
         elif current_state in ['dispatcher', 'administrative', 'management']:
             text, keyboard = get_direction_text_and_keyboard(current_state)
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(text=text, reply_markup=reply_markup)
+            user_state[user_id] = 'choose_direction'
             return
 
     if query.data in ['9:00', '9:15', '9:30', '9:45', '16:30', '17:00', '16:45', '17:15']:
@@ -174,7 +175,7 @@ async def collect_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await context.bot.send_message(chat_id=ADMIN_ID, text=admin_text)
 
 def main():
-    application = Application.builder().token("7417215075:AAFz39utBJGcVQT6DS4_eELk15E0GPjxc94").build()
+    application = Application.builder().token("YOUR_TELEGRAM_BOT_TOKEN").build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button))
